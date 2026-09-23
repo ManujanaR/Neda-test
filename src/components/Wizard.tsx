@@ -204,7 +204,7 @@ export default function Wizard() {
               >
                 <div className="flex-1 flex flex-col justify-center">
                   <h2 className="text-2xl md:text-3xl font-medium text-gray-800 mb-8 text-center leading-relaxed">
-                    "{activeQuestions[step - 1]}"
+                    &ldquo;{activeQuestions[step - 1]}&rdquo;
                   </h2>
 
                   <div className="space-y-3 max-w-md mx-auto w-full mb-8">
