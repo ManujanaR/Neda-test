@@ -129,7 +129,7 @@ export default function Wizard() {
                                 className="w-full"
                             >
                                 <h2 className="text-2xl md:text-3xl font-medium text-gray-800 mb-8 text-center leading-relaxed">
-                                    "{questions[step - 1]}"
+                                    &ldquo;{questions[step - 1]}&rdquo;
                                 </h2>
 
                                 <div className="space-y-3 max-w-md mx-auto">

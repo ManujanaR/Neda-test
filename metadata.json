@@ -1,0 +1,7 @@
+{
+  "name": "PEC Self-Rating Questionnaire",
+  "description": "Personal Entrepreneurial Competencies (PEC) self-rating questionnaire to assess entrepreneurial profiles and strengths.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
