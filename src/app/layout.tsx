@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+// @ts-expect-error Next.js processes this stylesheet import at build time.
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme";
 
@@ -7,10 +8,12 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Neda Entrepreneur Profile — 16 Archetypes Assessment",
-  description: "Discover your entrepreneurial archetype, competency octagon, blind spots, and 30-day action roadmap based on the validated PEC framework.",
+  description:
+    "Discover your entrepreneurial archetype, competency octagon, blind spots, and 30-day action roadmap based on the validated PEC framework.",
   openGraph: {
     title: "Neda Entrepreneur Profile — 16 Archetypes Assessment",
-    description: "Discover your entrepreneurial archetype, competency octagon, blind spots, and 30-day action roadmap based on the validated PEC framework.",
+    description:
+      "Discover your entrepreneurial archetype, competency octagon, blind spots, and 30-day action roadmap based on the validated PEC framework.",
   },
 };
 
@@ -40,7 +43,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.className} bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200`}>
+      <body
+        className={`${inter.className} bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200`}
+      >
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
