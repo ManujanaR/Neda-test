@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { questions, categories, type Language } from "@/lib/questions";
 import { calculateScores } from "@/lib/scoring";
 import { Radar } from "react-chartjs-2";
-import { ArrowLeft, Play, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, Play, RotateCcw } from "lucide-react";
 import {
   Chart as ChartJS,
   RadialLinearScale,
@@ -58,6 +58,8 @@ const ui = {
     resultsTitle: "Your Results",
     resultsSubtitle: "Entrepreneurial Competency Profile",
     retake: "Retake Questionnaire",
+    nextBtn: "Next Question",
+    seeResults: "See Results",
   },
   ta: {
     title: "சுய மதிப்பீட்டு கேள்வித்தாள்",
@@ -67,6 +69,8 @@ const ui = {
     resultsTitle: "உங்கள் முடிவுகள்",
     resultsSubtitle: "தொழில்முனைவோர் திறன் சுயவிவரம்",
     retake: "மீண்டும் மதிப்பிடு",
+    nextBtn: "அடுத்த கேள்வி",
+    seeResults: "முடிவுகளைப் பார்க்க",
   },
   si: {
     title: "ස්ව-ශ්‍රේණිගත ප්‍රශ්නාවලිය",
@@ -76,6 +80,8 @@ const ui = {
     resultsTitle: "ඔබේ ප්‍රතිඵල",
     resultsSubtitle: "ව්‍යවසායික කුසලතා පැතිකඩ",
     retake: "නැවත ශ්‍රේණිගත කරන්න",
+    nextBtn: "ඊළඟ ප්‍රශ්නය",
+    seeResults: "ප්‍රතිඵල බලන්න",
   },
 };
 
@@ -86,7 +92,6 @@ const langOptions: { code: Language; label: string }[] = [
 ];
 
 export default function Wizard() {
-  // 0 = intro, 1..45 = questions, 46 = results
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<number[]>(new Array(45).fill(0));
   const [lang, setLang] = useState<Language>("en");
@@ -101,11 +106,12 @@ export default function Wizard() {
     const newAnswers = [...answers];
     newAnswers[step - 1] = val;
     setAnswers(newAnswers);
+  };
 
-    // Auto-advance with slight delay for visual feedback
-    setTimeout(() => {
+  const handleNext = () => {
+    if (step <= totalQuestions) {
       setStep((prev) => prev + 1);
-    }, 300);
+    }
   };
 
   const handleBack = () => {
@@ -117,7 +123,6 @@ export default function Wizard() {
     setStep(0);
   };
 
-  // Shared framer-motion variants
   const slideVariants = {
     enter: { x: 50, opacity: 0 },
     center: { zIndex: 1, x: 0, opacity: 1 },
@@ -126,9 +131,8 @@ export default function Wizard() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden min-h-[500px] flex flex-col relative">
-
-        {/* Header / Progress */}
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden min-h-[600px] flex flex-col relative">
+        
         {step > 0 && step <= totalQuestions && (
           <div className="bg-blue-600 text-white p-4">
             <div className="flex justify-between items-center mb-2">
@@ -136,21 +140,20 @@ export default function Wizard() {
                 <ArrowLeft size={20} />
               </button>
               <span className="font-semibold text-sm">{t.questionOf(step, totalQuestions)}</span>
-              <div className="w-8"></div> {/* Spacer for centering */}
+              <div className="w-8"></div>
             </div>
             <div className="w-full bg-blue-800 rounded-full h-2 mt-2 overflow-hidden">
-              <div
-                className="bg-green-400 h-2 rounded-full transition-all duration-500 ease-out"
+              <div 
+                className="bg-green-400 h-2 rounded-full transition-all duration-500 ease-out" 
                 style={{ width: `${(step / totalQuestions) * 100}%` }}
               ></div>
             </div>
           </div>
         )}
 
-        <div className="flex-1 p-6 md:p-10 flex flex-col justify-center relative overflow-hidden">
+        <div className="flex-1 p-6 md:p-10 flex flex-col relative overflow-hidden">
           <AnimatePresence mode="wait">
-
-            {/* INTRO SCREEN */}
+            
             {step === 0 && (
               <motion.div
                 key="intro"
@@ -159,12 +162,11 @@ export default function Wizard() {
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.3 }}
-                className="text-center"
+                className="text-center h-full flex flex-col justify-center"
               >
-                <h1 className="text-3xl font-bold text-gray-900 mb-4">{t.title}</h1>
-                <p className="text-gray-600 mb-6 text-lg">{t.subtitle}</p>
-
-                {/* Language selector */}
+                <h1 className="text-3xl font-bold text-gray-900 mb-6">{t.title}</h1>
+                <p className="text-gray-600 mb-8 text-lg">{t.subtitle}</p>
+                
                 <div className="flex justify-center gap-3 mb-8">
                   {langOptions.map(({ code, label }) => (
                     <button
@@ -181,7 +183,7 @@ export default function Wizard() {
                   ))}
                 </div>
 
-                <button
+                <button 
                   onClick={() => setStep(1)}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105 flex items-center justify-center mx-auto gap-2 text-lg"
                 >
@@ -190,7 +192,6 @@ export default function Wizard() {
               </motion.div>
             )}
 
-            {/* QUESTION SCREEN */}
             {step > 0 && step <= totalQuestions && (
               <motion.div
                 key={`question-${step}`}
@@ -199,31 +200,47 @@ export default function Wizard() {
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.3 }}
-                className="w-full"
+                className="w-full h-full flex flex-col"
               >
-                <h2 className="text-2xl md:text-3xl font-medium text-gray-800 mb-8 text-center leading-relaxed">
-                  &ldquo;{activeQuestions[step - 1]}&rdquo;
-                </h2>
+                <div className="flex-1 flex flex-col justify-center">
+                  <h2 className="text-2xl md:text-3xl font-medium text-gray-800 mb-8 text-center leading-relaxed">
+                    "{activeQuestions[step - 1]}"
+                  </h2>
 
-                <div className="space-y-3 max-w-md mx-auto">
-                  {activeRatingOptions.map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => handleAnswer(opt.value)}
-                      className={`w-full py-4 px-6 text-left border-2 rounded-xl text-lg font-medium transition-all
-                        ${answers[step - 1] === opt.value
-                          ? 'border-blue-600 bg-blue-50 text-blue-700'
-                          : 'border-gray-200 hover:border-blue-400 hover:bg-gray-50 text-gray-700'
-                        }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
+                  <div className="space-y-3 max-w-md mx-auto w-full mb-8">
+                    {activeRatingOptions.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => handleAnswer(opt.value)}
+                        className={`w-full py-4 px-6 text-left border-2 rounded-xl text-lg font-medium transition-all
+                          ${answers[step - 1] === opt.value 
+                            ? 'border-blue-600 bg-blue-50 text-blue-700' 
+                            : 'border-gray-200 hover:border-blue-400 hover:bg-gray-50 text-gray-700'
+                          }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex justify-center mt-4">
+                  <button
+                    onClick={handleNext}
+                    disabled={answers[step - 1] === 0}
+                    className={`flex items-center gap-2 py-3 px-8 rounded-full font-semibold text-lg transition-all ${
+                      answers[step - 1] !== 0
+                        ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md transform hover:-translate-y-1'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {step === totalQuestions ? t.seeResults : t.nextBtn} 
+                    <ArrowRight size={20} />
+                  </button>
                 </div>
               </motion.div>
             )}
 
-            {/* RESULTS SCREEN */}
             {step > totalQuestions && (
               <motion.div
                 key="results"
@@ -232,11 +249,11 @@ export default function Wizard() {
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.4 }}
-                className="w-full flex flex-col items-center"
+                className="w-full flex flex-col items-center h-full justify-center"
               >
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">{t.resultsTitle}</h2>
                 <p className="text-gray-500 mb-8">{t.resultsSubtitle}</p>
-
+                
                 <div className="w-full max-w-md aspect-square mb-8">
                   {(() => {
                     const { scores } = calculateScores(answers);
@@ -255,15 +272,15 @@ export default function Wizard() {
                       }]
                     };
                     return (
-                      <Radar
-                        data={data}
+                      <Radar 
+                        data={data} 
                         options={{
                           responsive: true,
                           scales: {
                             r: { min: 0, max: 25, ticks: { stepSize: 5 } }
                           },
                           plugins: { legend: { display: false } }
-                        }}
+                        }} 
                       />
                     );
                   })()}
@@ -281,7 +298,7 @@ export default function Wizard() {
                   })()}
                 </div>
 
-                <button
+                <button 
                   onClick={handleRestart}
                   className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2"
                 >
