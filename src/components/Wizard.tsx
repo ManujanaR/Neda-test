@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { questions, categories } from "@/lib/questions";
+import { questions, categories, type Language } from "@/lib/questions";
 import { calculateScores } from "@/lib/scoring";
 import { Radar } from "react-chartjs-2";
 import { ArrowLeft, Play, RotateCcw } from "lucide-react";
@@ -37,8 +37,11 @@ export default function Wizard() {
     // 0 = intro, 1..45 = questions, 46 = results
     const [step, setStep] = useState(0);
     const [answers, setAnswers] = useState<number[]>(new Array(45).fill(0));
+    const [lang, setLang] = useState<Language>("en");
 
-    const totalQuestions = questions.length;
+    const activeQuestions = questions[lang];
+    const activeCategories = categories[lang];
+    const totalQuestions = activeQuestions.length;
 
     const handleAnswer = (val: number) => {
         const newAnswers = [...answers];
@@ -104,15 +107,37 @@ export default function Wizard() {
                                 transition={{ duration: 0.3 }}
                                 className="text-center"
                             >
-                                <h1 className="text-3xl font-bold text-gray-900 mb-6">Self-Rating Questionnaire</h1>
-                                <p className="text-gray-600 mb-8 text-lg">
+                                <h1 className="text-3xl font-bold text-gray-900 mb-4">Self-Rating Questionnaire</h1>
+                                <p className="text-gray-600 mb-6 text-lg">
                                     Assess your entrepreneurial competencies. Rate yourself honestly on each statement.
                                 </p>
+
+                                {/* Language selector */}
+                                <div className="flex justify-center gap-3 mb-8">
+                                    {([ 
+                                        { code: "en" as Language, label: "English" },
+                                        { code: "ta" as Language, label: "தமிழ்" },
+                                        { code: "si" as Language, label: "සිංහල" },
+                                    ]).map(({ code, label }) => (
+                                        <button
+                                            key={code}
+                                            onClick={() => setLang(code)}
+                                            className={`px-5 py-2 rounded-full border-2 font-semibold text-sm transition-all
+                                                ${lang === code
+                                                    ? "border-blue-600 bg-blue-600 text-white"
+                                                    : "border-gray-300 text-gray-600 hover:border-blue-400"
+                                                }`}
+                                        >
+                                            {label}
+                                        </button>
+                                    ))}
+                                </div>
+
                                 <button 
                                     onClick={() => setStep(1)}
                                     className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105 flex items-center justify-center mx-auto gap-2 text-lg"
                                 >
-                                    Start Now <Play size={20} />
+                                    {lang === "ta" ? "இப்போது தொடங்கு" : lang === "si" ? "දැන් ආරම්භ කරන්න" : "Start Now"} <Play size={20} />
                                 </button>
                             </motion.div>
                         )}
@@ -129,7 +154,7 @@ export default function Wizard() {
                                 className="w-full"
                             >
                                 <h2 className="text-2xl md:text-3xl font-medium text-gray-800 mb-8 text-center leading-relaxed">
-                                    "{questions[step - 1]}"
+                                    "{activeQuestions[step - 1]}"
                                 </h2>
 
                                 <div className="space-y-3 max-w-md mx-auto">
@@ -199,7 +224,7 @@ export default function Wizard() {
                                 <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
                                     {(() => {
                                         const { scores } = calculateScores(answers);
-                                        return categories.map((cat, i) => (
+                                        return activeCategories.map((cat, i) => (
                                             <div key={i} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
                                                 <span className="text-xs sm:text-sm text-gray-600 truncate mr-2" title={cat}>{cat}</span>
                                                 <span className="font-bold text-blue-600">{scores[i]}</span>
