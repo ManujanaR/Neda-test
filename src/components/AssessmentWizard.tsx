@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { questions } from '@/lib/questions';
+import { questions, type Language } from '@/lib/questions';
 import { JourneyStage, StartingStatus, AssessmentResult } from '@/lib/types';
 import { calculateAssessmentResult } from '@/lib/scoring';
 import { ArrowLeft, ArrowRight, CheckCircle2, Grid, Sparkles } from 'lucide-react';
@@ -14,12 +14,79 @@ interface AssessmentWizardProps {
   onCancel: () => void;
 }
 
-const ratingOptions = [
-  { value: 5, label: '5 — Always / Strongly Agree', sub: 'Completely describes my natural default behavior' },
-  { value: 4, label: '4 — Mostly / Agree', sub: 'True most of the time across various situations' },
-  { value: 3, label: '3 — Moderately / Neutral', sub: 'Depends on the specific context or 50/50' },
-  { value: 2, label: '2 — Rarely / Disagree', sub: 'Only occasionally or under rare circumstances' },
-  { value: 1, label: '1 — Never / Strongly Disagree', sub: 'Does not describe my mindset or actions at all' },
+const ratingOptions: Record<Language, { value: number; label: string; sub: string }[]> = {
+  en: [
+    { value: 5, label: '5 — Always / Strongly Agree', sub: 'Completely describes my natural default behavior' },
+    { value: 4, label: '4 — Mostly / Agree', sub: 'True most of the time across various situations' },
+    { value: 3, label: '3 — Moderately / Neutral', sub: 'Depends on the specific context or 50/50' },
+    { value: 2, label: '2 — Rarely / Disagree', sub: 'Only occasionally or under rare circumstances' },
+    { value: 1, label: '1 — Never / Strongly Disagree', sub: 'Does not describe my mindset or actions at all' },
+  ],
+  ta: [
+    { value: 5, label: '5 — எப்போதும் / முழுமையாக ஒப்புக்கொள்கிறேன்', sub: 'என் இயல்பான நடத்தையை முழுவதும் விவரிக்கிறது' },
+    { value: 4, label: '4 — பெரும்பாலும் / ஒப்புக்கொள்கிறேன்', sub: 'பெரும்பாலான சூழல்களில் உண்மை' },
+    { value: 3, label: '3 — சில நேரங்களில் / நடுநிலை', sub: 'குறிப்பிட்ட சூழலைப் பொறுத்தது அல்லது 50/50' },
+    { value: 2, label: '2 — அரிதாக / கருத்து மாறுபாடு', sub: 'அரிதான சந்தர்ப்பங்களில் மட்டுமே' },
+    { value: 1, label: '1 — ஒருபோதும் இல்லை / முற்றிலும் மாறுபடுகிறேன்', sub: 'என் மனநிலை அல்லது செயல்களை விவரிக்கவே இல்லை' },
+  ],
+  si: [
+    { value: 5, label: '5 — සෑම විටම / දැඩිව එකඟ වෙමි', sub: 'මගේ ස්වාභාවික හැසිරීම සම්පූර්ණයෙන් විස්තර කරයි' },
+    { value: 4, label: '4 — බොහෝ විට / එකඟ වෙමි', sub: 'බොහෝ අවස්ථාවල සත්‍ය වේ' },
+    { value: 3, label: '3 — සමහර විට / තටස්ථ', sub: 'නිශ්චිත සන්දර්භය අනුව හෝ 50/50' },
+    { value: 2, label: '2 — කලාතුරකින් / එකඟ නොවෙමි', sub: 'කලාතුරකින් හෝ දුර්ලභ අවස්ථාවල පමණි' },
+    { value: 1, label: '1 — කිසිවිටෙක නැත / දැඩිව එකඟ නොවෙමි', sub: 'මගේ චින්තනය හෝ ක්‍රියාවන් විස්තර නොකරයි' },
+  ],
+};
+
+const uiStrings = {
+  en: {
+    statementOf: (cur: number, total: number) => `STATEMENT ${cur} OF ${total}`,
+    keyHint: 'Use keys 1–5 or click an option',
+    overview: (answered: number, total: number) => `Overview (${answered}/${total})`,
+    overviewTitle: 'Question Progress Navigator',
+    overviewNote: 'Click any numbered box to jump directly to that statement and review your response.',
+    returnToQuestion: 'Return to Active Question',
+    allCompleted: 'All 45 Completed — View My Entrepreneur Profile',
+    generateProfile: 'Generate My Profile',
+    previous: 'Previous',
+    next: 'Next',
+    exit: 'Exit',
+    assessment: 'Assessment',
+  },
+  ta: {
+    statementOf: (cur: number, total: number) => `கேள்வி ${cur} / ${total}`,
+    keyHint: '1–5 விசைகளை அல்லது ஒரு விருப்பத்தை கிளிக் செய்யுங்கள்',
+    overview: (answered: number, total: number) => `மேலோட்டம் (${answered}/${total})`,
+    overviewTitle: 'கேள்வி முன்னேற்ற வழிசெலுத்தி',
+    overviewNote: 'நேரடியாக அந்த கூற்றுக்கு செல்ல எந்த எண் பெட்டியையும் கிளிக் செய்யுங்கள்.',
+    returnToQuestion: 'செயலில் உள்ள கேள்விக்கு திரும்பு',
+    allCompleted: '45 கேள்விகளும் முடிந்தன — என் சுயவிவரத்தை காண்க',
+    generateProfile: 'என் சுயவிவரத்தை உருவாக்கு',
+    previous: 'முந்தைய',
+    next: 'அடுத்த',
+    exit: 'வெளியேறு',
+    assessment: 'மதிப்பீடு',
+  },
+  si: {
+    statementOf: (cur: number, total: number) => `ප්‍රකාශය ${cur} / ${total}`,
+    keyHint: '1–5 යතුරු හෝ විකල්පයක් ක්ලික් කරන්න',
+    overview: (answered: number, total: number) => `දළ විශ්ලේෂණය (${answered}/${total})`,
+    overviewTitle: 'ප්‍රශ්න ප්‍රගති සංචාලකය',
+    overviewNote: 'එම ප්‍රකාශයට සෘජුවම යාමට ඕනෑම අංකිත කොටුවක් ක්ලික් කරන්න.',
+    returnToQuestion: 'ක්‍රියාකාරී ප්‍රශ්නයට ආපසු',
+    allCompleted: '45 ම සම්පූර්ණ — මගේ පැතිකඩ බලන්න',
+    generateProfile: 'මගේ පැතිකඩ සාදන්න',
+    previous: 'පෙර',
+    next: 'ඊළඟ',
+    exit: 'පිටවීම',
+    assessment: 'තක්සේරු කිරීම',
+  },
+};
+
+const langOptions: { code: Language; label: string }[] = [
+  { code: 'en', label: 'EN' },
+  { code: 'ta', label: 'தமிழ்' },
+  { code: 'si', label: 'සිං' },
 ];
 
 export default function AssessmentWizard({
@@ -28,7 +95,11 @@ export default function AssessmentWizard({
   onComplete,
   onCancel,
 }: AssessmentWizardProps) {
-  const totalQuestions = questions.length;
+  const [lang, setLang] = useState<Language>('en');
+  const activeQuestions = questions[lang];
+  const activeRatingOptions = ratingOptions[lang];
+  const t = uiStrings[lang];
+  const totalQuestions = activeQuestions.length;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>(new Array(totalQuestions).fill(0));
   const [showReviewGrid, setShowReviewGrid] = useState(false);
@@ -93,7 +164,7 @@ export default function AssessmentWizard({
   const currentAnswer = answers[currentIndex];
   const isAllAnswered = answeredCount === totalQuestions;
 
-  const currentStatement = questions[currentIndex];
+  const currentStatement = activeQuestions[currentIndex];
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-slate-50/60 dark:bg-slate-950 py-8 px-4 sm:px-6 flex flex-col justify-center items-center transition-colors">
@@ -108,21 +179,37 @@ export default function AssessmentWizard({
                 className="text-slate-400 hover:text-white transition-colors"
                 title="Return to Home"
               >
-                Exit
+                {t.exit}
               </button>
               <span className="text-slate-600">/</span>
               <span className="font-semibold text-slate-200 capitalize">
-                {stage} Assessment
+                {stage} {t.assessment}
               </span>
             </div>
 
             <div className="flex items-center gap-3">
+              {/* Language switcher */}
+              <div className="flex items-center gap-1">
+                {langOptions.map(({ code, label }) => (
+                  <button
+                    key={code}
+                    onClick={() => setLang(code)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
+                      lang === code
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
               <button
                 onClick={() => setShowReviewGrid(!showReviewGrid)}
                 className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded text-[11px] font-medium"
               >
                 <Grid className="w-3.5 h-3.5" />
-                <span>Overview ({answeredCount}/{totalQuestions})</span>
+                <span>{t.overview(answeredCount, totalQuestions)}</span>
               </button>
               <span className="font-mono text-slate-300 font-semibold">
                 {progressPercent}%
@@ -147,18 +234,18 @@ export default function AssessmentWizard({
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-slate-900 dark:text-white text-base">
-                  Question Progress Navigator
+                  {t.overviewTitle}
                 </h3>
                 <button
                   onClick={() => setShowReviewGrid(false)}
                   className="text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline"
                 >
-                  Return to Active Question
+                  {t.returnToQuestion}
                 </button>
               </div>
 
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
-                Click any numbered box to jump directly to that statement and review your response.
+                {t.overviewNote}
               </p>
 
               <div className="grid grid-cols-5 sm:grid-cols-9 gap-2 mb-8">
@@ -188,7 +275,7 @@ export default function AssessmentWizard({
                   className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>All 45 Completed — View My Entrepreneur Profile</span>
+                  <span>{t.allCompleted}</span>
                 </button>
               )}
             </div>
@@ -199,9 +286,9 @@ export default function AssessmentWizard({
               <div>
                 {/* Meta indicator */}
                 <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500 font-semibold mb-4">
-                  <span>STATEMENT {currentIndex + 1} OF {totalQuestions}</span>
+                  <span>{t.statementOf(currentIndex + 1, totalQuestions)}</span>
                   <span className="hidden sm:inline text-[11px] font-normal text-slate-400 dark:text-slate-500">
-                    Use keys 1–5 or click an option
+                    {t.keyHint}
                   </span>
                 </div>
 
@@ -222,7 +309,7 @@ export default function AssessmentWizard({
 
                 {/* Rating Options */}
                 <div className="space-y-2.5">
-                  {ratingOptions.map((opt) => {
+                  {activeRatingOptions.map((opt) => {
                     const isSelected = currentAnswer === opt.value;
                     return (
                       <button
@@ -279,7 +366,7 @@ export default function AssessmentWizard({
                   }`}
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span>Previous</span>
+                  <span>{t.previous}</span>
                 </button>
 
                 {currentIndex === totalQuestions - 1 ? (
@@ -293,7 +380,7 @@ export default function AssessmentWizard({
                         : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
                     }`}
                   >
-                    <span>Generate My Profile</span>
+                    <span>{t.generateProfile}</span>
                     <Sparkles className="w-4 h-4" />
                   </button>
                 ) : (
@@ -309,7 +396,7 @@ export default function AssessmentWizard({
                         : 'text-slate-300 dark:text-slate-700 cursor-not-allowed'
                     }`}
                   >
-                    <span>Next</span>
+                    <span>{t.next}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 )}
