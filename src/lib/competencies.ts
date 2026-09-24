@@ -159,15 +159,15 @@ export function getCompetencyBand(score: number): CompetencyBand {
   return 'Emerging';
 }
 
-export function getBandColor(band: CompetencyBand): { text: string; bg: string; border: string } {
+export function getBandColor(band: CompetencyBand): string {
   switch (band) {
     case 'Exceptional':
-      return { text: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200' };
+      return 'text-emerald-700 dark:text-emerald-400';
     case 'Strong':
-      return { text: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200' };
+      return 'text-blue-700 dark:text-blue-400';
     case 'Developing':
-      return { text: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200' };
+      return 'text-amber-700 dark:text-amber-400';
     case 'Emerging':
-      return { text: 'text-rose-700', bg: 'bg-rose-50', border: 'border-rose-200' };
+      return 'text-rose-700 dark:text-rose-400';
   }
 }

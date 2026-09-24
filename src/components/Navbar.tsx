@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { Compass, History, Award, Sun, Moon } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 import { useTheme } from "@/lib/theme";
+import { useLang, LANGUAGES } from "@/lib/i18n";
 
 interface NavbarProps {
   currentView: "home" | "assessment" | "report" | "explorer";
@@ -18,83 +19,57 @@ export default function Navbar({
   hasSavedResults,
 }: NavbarProps) {
   const { theme, toggleTheme } = useTheme();
+  const { lang, setLang, t } = useLang();
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        {/* Brand */}
-        <button
-          onClick={() => onNavigate("home")}
-          className="flex items-center gap-2.5 text-left group transition-opacity hover:opacity-90"
-        >
-          <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-            N
-          </div>
-          <div>
-            <span className="font-bold text-slate-900 dark:text-white text-base tracking-tight block leading-tight">
-              NEDA
-            </span>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block leading-none">
-              Entrepreneurial Archetypes
-            </span>
-          </div>
+    <header className="border-b border-line">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <button onClick={() => onNavigate("home")} className="flex items-baseline gap-2 shrink-0">
+          <span className="font-semibold text-lg text-brand-ink">NEDA</span>
+          <span className="text-sm text-mute hidden sm:inline">{t.nav.tagline}</span>
         </button>
 
-        {/* Navigation Controls */}
-        <nav className="flex items-center gap-1 sm:gap-2">
+        <nav className="flex items-center gap-4 text-sm">
           <button
             onClick={() => onNavigate("explorer")}
-            className={`px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5 ${
-              currentView === "explorer"
-                ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-semibold"
-                : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60"
-            }`}
+            className={currentView === "explorer" ? "font-medium text-brand-ink" : "text-mute hover:text-ink"}
           >
-            <Compass className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <span>16 Archetypes</span>
+            {t.nav.archetypes}
           </button>
 
           {hasSavedResults && (
-            <button
-              onClick={onOpenHistory}
-              className="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors flex items-center gap-1.5"
-              title="View past assessment results"
-            >
-              <History className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-              <span className="hidden sm:inline">Saved Reports</span>
+            <button onClick={onOpenHistory} className="text-mute hover:text-ink">
+              {t.nav.saved}
             </button>
           )}
 
-          {/* Dark Mode Toggle Button */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
-            title={
-              theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"
-            }
-            aria-label="Toggle theme"
+            className="text-mute hover:text-ink"
+            aria-label={theme === "dark" ? t.nav.lightMode : t.nav.darkMode}
           >
-            {theme === "dark" ? (
-              <Sun className="w-4 h-4 text-amber-400 animate-in fade-in zoom-in duration-200" />
-            ) : (
-              <Moon className="w-4 h-4 text-slate-600 dark:text-slate-300 animate-in fade-in zoom-in duration-200" />
-            )}
+            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          <button
-            onClick={() => onNavigate("assessment")}
-            className={`ml-1 sm:ml-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg shadow-sm transition-all flex items-center gap-1.5 ${
-              currentView === "assessment"
-                ? "bg-blue-700 text-white"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
-            }`}
-          >
-            <Award className="w-4 h-4" />
-            <span>
-              {currentView === "report" ? "Retake Test" : "Take Test"}
-            </span>
-          </button>
+          {currentView !== "assessment" && (
+            <button onClick={() => onNavigate("assessment")} className="btn-primary py-2">
+              {currentView === "report" ? t.nav.retake : t.nav.takeTest}
+            </button>
+          )}
         </nav>
+
+        <div className="flex items-center gap-3 text-sm w-full sm:w-auto sm:order-first sm:basis-full sm:justify-end">
+          {LANGUAGES.map(({ code, label }) => (
+            <button
+              key={code}
+              onClick={() => setLang(code)}
+              aria-pressed={lang === code}
+              className={lang === code ? "text-brand-ink font-medium" : "text-mute hover:text-ink"}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
     </header>
   );

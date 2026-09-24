@@ -9,8 +9,10 @@ import ArchetypeExplorer from '@/components/ArchetypeExplorer';
 import SavedAssessmentsModal from '@/components/SavedAssessmentsModal';
 import { JourneyStage, StartingStatus, AssessmentResult } from '@/lib/types';
 import { getLatestAssessment, getSavedAssessments, saveAssessmentResult } from '@/lib/storage';
+import { useLang } from '@/lib/i18n';
 
 export default function Home() {
+  const { t } = useLang();
   const [currentView, setCurrentView] = useState<'home' | 'assessment' | 'report' | 'explorer'>('home');
   const [stage, setStage] = useState<JourneyStage>('undergraduate');
   const [status, setStatus] = useState<StartingStatus>('not_started');
@@ -53,7 +55,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+    <div className="min-h-screen flex flex-col">
       <Navbar
         currentView={currentView}
         onNavigate={(view) => {
@@ -145,36 +147,12 @@ export default function Home() {
         />
       )}
 
-      {/* Footer */}
-      <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-8 px-4 sm:px-6 mt-16 transition-colors duration-200">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-900 dark:text-white">Neda Profile</span>
-            <span>&middot;</span>
-            <span>Personal Entrepreneurial Competencies (PEC) Framework</span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => {
-                setCurrentView('explorer');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="hover:text-slate-900 dark:hover:text-white transition-colors"
-            >
-              16 Archetypes
-            </button>
-            <span>&middot;</span>
-            <button
-              onClick={() => {
-                setCurrentView('assessment');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="hover:text-slate-900 dark:hover:text-white transition-colors"
-            >
-              Take Assessment
-            </button>
-          </div>
+      <footer className="border-t border-line py-8 px-4 sm:px-6 mt-16">
+        <div className="max-w-3xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm text-mute">
+          <span>{t.footer.text}</span>
+          <button onClick={() => { setCurrentView('explorer'); window.scrollTo({ top: 0 }); }} className="btn-link text-left">
+            {t.footer.link}
+          </button>
         </div>
       </footer>
     </div>

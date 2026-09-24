@@ -14,15 +14,9 @@ import {
 import { CompetencyCode } from '@/lib/types';
 import { COMPETENCY_METADATA } from '@/lib/competencies';
 import { useTheme } from '@/lib/theme';
+import { useLang } from '@/lib/i18n';
 
-ChartJS.register(
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  Filler,
-  Tooltip,
-  Legend
-);
+ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
 interface OctagonChartProps {
   scores: Record<CompetencyCode, number>;
@@ -30,155 +24,89 @@ interface OctagonChartProps {
 
 export default function OctagonChart({ scores }: OctagonChartProps) {
   const { theme } = useTheme();
+  const { t } = useLang();
   const isDark = theme === 'dark';
+  const ink = isDark ? '#ECECEA' : '#32373C';
+  const brand = isDark ? '#F4823C' : '#DE6418';
+  const mute = isDark ? '#A0A5AA' : '#6B7279';
+  const line = isDark ? '#34383C' : '#E5E7E9';
 
-  const [showBenchmark, setShowBenchmark] = useState(true);
-  const [showAverage, setShowAverage] = useState(false);
+  const [showBaseline, setShowBaseline] = useState(false);
 
   const codes: CompetencyCode[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-  const labels = codes.map((c) => `${c}: ${COMPETENCY_METADATA[c].shortName}`);
-  const userScores = codes.map((c) => scores[c]);
-
-  const idealScores = [25, 25, 25, 25, 25, 25, 25, 25];
-  const averageScores = [15, 15, 15, 15, 15, 15, 15, 15];
+  // ponytail: split on ' & ' so long names wrap to two lines instead of clipping
+  const labels = codes.map((c) => COMPETENCY_METADATA[c].shortName.split(' & '));
 
   const datasets = [
     {
-      label: 'Your Score',
-      data: userScores,
-      backgroundColor: isDark ? 'rgba(59, 130, 246, 0.35)' : 'rgba(37, 99, 235, 0.22)',
-      borderColor: isDark ? 'rgba(96, 165, 250, 0.95)' : 'rgba(37, 99, 235, 0.95)',
-      pointBackgroundColor: isDark ? '#60a5fa' : 'rgba(37, 99, 235, 1)',
-      pointBorderColor: isDark ? '#0f172a' : '#ffffff',
+      label: t.report.chartYou,
+      data: codes.map((c) => scores[c]),
+      backgroundColor: isDark ? 'rgba(244, 130, 60, 0.2)' : 'rgba(222, 100, 24, 0.12)',
+      borderColor: brand,
+      pointBackgroundColor: brand,
+      pointBorderColor: isDark ? '#181A1C' : '#ffffff',
       pointBorderWidth: 2,
       pointRadius: 4,
-      pointHoverRadius: 6,
-      borderWidth: 2.5,
+      borderWidth: 2,
     },
-    ...(showBenchmark
+    ...(showBaseline
       ? [
           {
-            label: 'Full Octagon (Target 25)',
-            data: idealScores,
+            label: t.report.chartTypical,
+            data: codes.map(() => 15),
             backgroundColor: 'transparent',
-            borderColor: isDark ? 'rgba(52, 211, 153, 0.55)' : 'rgba(16, 185, 129, 0.45)',
+            borderColor: mute,
             borderDash: [4, 4],
-            pointBackgroundColor: isDark ? 'rgba(52, 211, 153, 0.8)' : 'rgba(16, 185, 129, 0.7)',
-            pointBorderColor: isDark ? '#0f172a' : '#ffffff',
-            pointRadius: 2,
-            borderWidth: 1.5,
-          },
-        ]
-      : []),
-    ...(showAverage
-      ? [
-          {
-            label: 'Typical Benchmark (15)',
-            data: averageScores,
-            backgroundColor: 'transparent',
-            borderColor: isDark ? 'rgba(148, 163, 184, 0.4)' : 'rgba(148, 163, 184, 0.6)',
-            borderDash: [2, 2],
             pointRadius: 0,
-            borderWidth: 1.5,
+            borderWidth: 1,
           },
         ]
       : []),
   ];
 
-  const chartData = {
-    labels,
-    datasets,
-  };
-
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: true,
+    layout: { padding: 8 },
     scales: {
       r: {
         min: 0,
         max: 25,
-        ticks: {
-          stepSize: 5,
-          backdropColor: 'transparent',
-          color: isDark ? '#94a3b8' : '#64748b',
-          font: {
-            size: 10,
-          },
-        },
-        grid: {
-          color: isDark ? 'rgba(71, 85, 105, 0.4)' : 'rgba(226, 232, 240, 0.9)',
-        },
-        angleLines: {
-          color: isDark ? 'rgba(71, 85, 105, 0.5)' : 'rgba(203, 213, 225, 0.8)',
-        },
-        pointLabels: {
-          font: {
-            size: 11,
-            weight: 600,
-          },
-          color: isDark ? '#f1f5f9' : '#1e293b',
-        },
+        ticks: { stepSize: 5, backdropColor: 'transparent', color: mute, font: { size: 10 } },
+        grid: { color: line },
+        angleLines: { color: line },
+        pointLabels: { font: { size: 12 }, color: ink },
       },
     },
     plugins: {
-      legend: {
-        position: 'bottom' as const,
-        labels: {
-          boxWidth: 12,
-          boxHeight: 12,
-          color: isDark ? '#cbd5e1' : '#475569',
-          font: {
-            size: 12,
-          },
-        },
-      },
+      legend: { display: false },
       tooltip: {
-        backgroundColor: '#0f172a',
+        backgroundColor: ink,
+        titleColor: isDark ? '#181A1C' : '#ffffff',
+        bodyColor: isDark ? '#181A1C' : '#ffffff',
         padding: 10,
-        titleFont: { size: 12, weight: 'bold' as const },
-        bodyFont: { size: 12 },
         callbacks: {
-          label: (context: any) => ` ${context.dataset.label}: ${context.raw} / 25`,
+          label: (context: { dataset: { label?: string }; raw: unknown }) =>
+            ` ${context.dataset.label}: ${context.raw} of 25`,
         },
       },
     },
   };
 
   return (
-    <div className="w-full flex flex-col items-center">
-      {/* Toggles */}
-      <div className="flex flex-wrap items-center justify-center gap-2 mb-4 text-xs">
-        <button
-          onClick={() => setShowBenchmark(!showBenchmark)}
-          className={`px-3 py-1.5 rounded-md border text-xs font-medium transition-colors ${
-            showBenchmark
-              ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
-              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-          }`}
-        >
-          {showBenchmark ? '✓ Target Octagon (25) Active' : '+ Show Target Octagon'}
-        </button>
-
-        <button
-          onClick={() => setShowAverage(!showAverage)}
-          className={`px-3 py-1.5 rounded-md border text-xs font-medium transition-colors ${
-            showAverage
-              ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-800 dark:text-slate-200'
-              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-          }`}
-        >
-          {showAverage ? '✓ Benchmark Line (15) Active' : '+ Show Baseline (15)'}
-        </button>
+    <div className="w-full flex flex-col items-center gap-4">
+      <div className="w-full max-w-[420px] aspect-square">
+        <Radar data={{ labels, datasets }} options={chartOptions} />
       </div>
-
-      {/* Radar Container */}
-      <div className="w-full max-w-[420px] aspect-square relative">
-        <Radar data={chartData} options={chartOptions} />
-      </div>
-
-      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-3 text-center max-w-sm">
-        The original NEDA instrument guides entrepreneurs to expand their competency polygon outward towards the full 25 perimeter.
-      </p>
+      <label className="flex items-center gap-2 text-sm text-mute cursor-pointer">
+        <input
+          type="checkbox"
+          checked={showBaseline}
+          onChange={(e) => setShowBaseline(e.target.checked)}
+          className="accent-brand"
+        />
+        {t.report.chartToggle}
+      </label>
     </div>
   );
 }

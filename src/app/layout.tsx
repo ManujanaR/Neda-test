@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-// @ts-expect-error Next.js processes this stylesheet import at build time.
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme";
+import { LanguageProvider } from "@/lib/i18n";
 
-const inter = Inter({ subsets: ["latin"] });
+// Poppins is what neda.gov.lk uses
+const sans = Poppins({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Neda Entrepreneur Profile — 16 Archetypes Assessment",
+  title: "NEDA Entrepreneur Profile",
   description:
-    "Discover your entrepreneurial archetype, competency octagon, blind spots, and 30-day action roadmap based on the validated PEC framework.",
+    "A 45-statement self-assessment that maps you to one of 16 entrepreneur archetypes, scores eight competencies, and gives you a 30-day plan.",
   openGraph: {
-    title: "Neda Entrepreneur Profile — 16 Archetypes Assessment",
+    title: "NEDA Entrepreneur Profile",
     description:
-      "Discover your entrepreneurial archetype, competency octagon, blind spots, and 30-day action roadmap based on the validated PEC framework.",
+      "A 45-statement self-assessment that maps you to one of 16 entrepreneur archetypes, scores eight competencies, and gives you a 30-day plan.",
   },
 };
 
@@ -23,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={sans.variable}>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -32,21 +33,17 @@ export default function RootLayout({
                 try {
                   const stored = localStorage.getItem('neda_theme');
                   const isDark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
-                  if (isDark) {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                  }
+                  document.documentElement.classList.toggle('dark', isDark);
                 } catch (e) {}
               })();
             `,
           }}
         />
       </head>
-      <body
-        className={`${inter.className} bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200`}
-      >
-        <ThemeProvider>{children}</ThemeProvider>
+      <body className="font-sans min-h-screen border-t-4 border-brand">
+        <ThemeProvider>
+          <LanguageProvider>{children}</LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

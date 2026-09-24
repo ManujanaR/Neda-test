@@ -3,10 +3,63 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-slate-50 text-slate-900 transition-colors duration-200;
+  /* palette from neda.gov.lk (#DE6418 orange, #32373C text) and the NEDA logo (cobalt N) */
+  :root {
+    --paper: 255 255 255;
+    --ink: 50 55 60;
+    --mute: 107 114 121;
+    --line: 229 231 233;
+    --well: 250 247 244;
+    --brand: 222 100 24;
+    --brand-ink: 178 77 14;
+    --blue: 30 79 168;
   }
-  .dark body {
-    @apply bg-slate-950 text-slate-100;
+  .dark {
+    --paper: 24 26 28;
+    --ink: 236 236 234;
+    --mute: 160 165 170;
+    --line: 52 56 60;
+    --well: 34 37 40;
+    --brand: 244 130 60;
+    --brand-ink: 249 154 92;
+    --blue: 122 160 230;
+  }
+  body {
+    @apply bg-paper text-ink antialiased;
+  }
+  h1, h2 {
+    @apply font-semibold tracking-tight;
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--brand));
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-brand text-white hover:bg-brand-ink;
+  }
+  .btn-secondary {
+    @apply btn border border-line hover:border-mute hover:bg-well;
+  }
+  .btn-link {
+    @apply text-sm text-brand-ink underline underline-offset-4 decoration-brand/40 hover:decoration-brand-ink transition-colors;
+  }
+  /* option buttons: state comes from aria-pressed, not class juggling */
+  .choice {
+    @apply rounded-lg border border-line text-left transition-colors hover:border-mute aria-pressed:border-brand aria-pressed:bg-brand/10;
+  }
+  .section {
+    @apply border-t border-line pt-10;
   }
 }
