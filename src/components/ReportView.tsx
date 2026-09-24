@@ -186,7 +186,7 @@ ${origin}`;
 
             return (
               <article key={comp.code} className="space-y-3 max-w-xl">
-                <div className="flex items-baseline justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4">
                   <h3 className="text-xl font-semibold">{comp.name}</h3>
                   <span className="shrink-0 text-sm">
                     <span className="text-mute">{r.of25(comp.score)}, </span>
